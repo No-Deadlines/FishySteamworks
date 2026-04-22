@@ -6,6 +6,7 @@ using FishySteamworks.Client;
 using Steamworks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -393,7 +394,7 @@ namespace FishySteamworks.Server
                 base.Transport.HandleServerReceivedDataArgs(new ServerReceivedDataArgs(segment, (Channel)packet.Channel, FishySteamworks.CLIENT_HOST_ID, Transport.Index));
             }
 
-            foreach (KeyValuePair<HSteamNetConnection, int> item in _steamConnections.First)
+            foreach (KeyValuePair<HSteamNetConnection, int> item in _steamConnections.First.ToArray()) // to array to avoid modification issues
             {
                 HSteamNetConnection steamNetConn = item.Key;
                 int connectionId = item.Value;
