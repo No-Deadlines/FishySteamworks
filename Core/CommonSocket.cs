@@ -130,18 +130,22 @@ namespace FishySteamworks
              * Odds of the array having to resize are extremely low
              * so while this is not ideal, it's still very low risk. */
             if ((segment.Array.Length - 1) <= (segment.Offset + segment.Count))
-            {
-                byte[] arr = segment.Array;
-                Array.Resize(ref arr, arr.Length + 1);
-                arr[arr.Length - 1] = channelId;
-            }
-            //If large enough just increase the segment and set the channel byte.
-            else
-            {
-                segment.Array[segment.Offset + segment.Count] = channelId;
-            }
-            //Make a new segment so count is right.
-            segment = new ArraySegment<byte>(segment.Array, segment.Offset, segment.Count + 1);
+			{
+				byte[] arr = segment.Array;
+				Array.Resize(ref arr, arr.Length + 1);
+				arr[arr.Length - 1] = channelId;
+
+				// create a new segment with the resized array
+				segment = new ArraySegment<byte>(arr, segment.Offset, segment.Count + 1);
+			}
+			//If large enough just increase the segment and set the channel byte.
+			else
+			{
+				segment.Array[segment.Offset + segment.Count] = channelId;
+
+				//Make a new segment so count is right.
+				segment = new ArraySegment<byte>(segment.Array, segment.Offset, segment.Count + 1);
+			}
 
             GCHandle pinnedArray = GCHandle.Alloc(segment.Array, GCHandleType.Pinned);
             IntPtr pData = pinnedArray.AddrOfPinnedObject() + segment.Offset;
