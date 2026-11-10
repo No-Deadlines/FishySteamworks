@@ -322,8 +322,9 @@ namespace FishySteamworks.Server
             }
             else if (args.m_info.m_eState == ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ClosedByPeer || args.m_info.m_eState == ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ProblemDetectedLocally)
             {
-                if (_steamConnections.TryGetValue(args.m_hConn, out int connId))
+                if (_steamConnections.TryGetValue(args.m_hConn, out int connId) && !IsRemovalPending(connId))
                 {
+                    LogConnectionEnd($"Connection {connId} (SteamID {clientSteamID})", args.m_info);
                     StopConnection(connId, args.m_hConn);
                 }
             }
@@ -516,7 +517,7 @@ namespace FishySteamworks.Server
 
                 if (res == EResult.k_EResultNoConnection || res == EResult.k_EResultInvalidParam)
                 {
-                    base.Transport.NetworkManager.Log($"Connection to {connectionId} was lost.");
+                    LogConnectionEnd($"Connection {connectionId}", steamConn);
                     //Deferred: removing now would run FishNet's disconnect callbacks from inside its own send loop.
                     StopConnection(connectionId, steamConn, deferRemoval: true);
                 }
@@ -525,7 +526,7 @@ namespace FishySteamworks.Server
                     //Steam's send queue is full, the peer has stopped draining it. Dropped reliable data can't be recovered.
                     if (channelId != (byte)Channel.Unreliable)
                     {
-                        base.Transport.NetworkManager.LogWarning($"Send queue of connection {connectionId} is full, reliable data was dropped. Disconnecting it.");
+                        base.Transport.NetworkManager.LogError($"Send queue of connection {connectionId} is full, reliable data was dropped. Disconnecting it.");
                         StopConnection(connectionId, steamConn, deferRemoval: true);
                     }
                 }

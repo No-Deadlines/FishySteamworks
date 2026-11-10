@@ -127,7 +127,7 @@ namespace FishySteamworks.Client
             }
             else if (args.m_info.m_eState == ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ClosedByPeer || args.m_info.m_eState == ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ProblemDetectedLocally)
             {
-                base.Transport.NetworkManager.Log($"Connection was closed by peer, {args.m_info.m_szEndDebug}");
+                LogConnectionEnd("Connection to server", args.m_info);
                 StopConnection();
             }
             else
@@ -201,7 +201,7 @@ namespace FishySteamworks.Client
             EResult res = base.Send(_socket, segment, channelId);
             if (res == EResult.k_EResultNoConnection || res == EResult.k_EResultInvalidParam)
             {
-                base.Transport.NetworkManager.Log($"Connection to server was lost.");
+                LogConnectionEnd("Connection to server", _socket);
                 StopConnection();
             }
             else if (res != EResult.k_EResultOK)

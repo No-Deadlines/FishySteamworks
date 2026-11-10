@@ -164,6 +164,38 @@ namespace FishySteamworks
         }
 
         /// <summary>
+        /// Logs why a connection ended, as an error when it was not a normal close.
+        /// </summary>
+        protected void LogConnectionEnd(string connectionName, SteamNetConnectionInfo_t info)
+        {
+            string message = $"{connectionName} ended: {info.m_eState}, end reason {info.m_eEndReason}. {info.m_szEndDebug}";
+            bool abnormal = info.m_eState == ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ProblemDetectedLocally
+                || info.m_eEndReason >= (int)ESteamNetConnectionEnd.k_ESteamNetConnectionEnd_AppException_Min;
+
+            if (abnormal)
+                Transport.NetworkManager.LogError(message);
+            else
+                Transport.NetworkManager.Log(message);
+        }
+
+        /// <summary>
+        /// Logs why a connection ended after a send failed on it.
+        /// </summary>
+        protected void LogConnectionEnd(string connectionName, HSteamNetConnection steamConnection)
+        {
+            SteamNetConnectionInfo_t info;
+#if UNITY_SERVER
+            bool found = SteamGameServerNetworkingSockets.GetConnectionInfo(steamConnection, out info);
+#else
+            bool found = SteamNetworkingSockets.GetConnectionInfo(steamConnection, out info);
+#endif
+            if (found)
+                LogConnectionEnd(connectionName, info);
+            else
+                Transport.NetworkManager.LogError($"{connectionName} was lost, Steam has no info on it.");
+        }
+
+        /// <summary>
         /// Clears a queue.
         /// </summary>
         /// <param name="queue"></param>
